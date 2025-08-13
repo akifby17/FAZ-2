@@ -1,0 +1,21 @@
+{
+    "title_looms": "TEZGAHLAR",
+    "label_group": "Grup",
+    "select_all": "Hepsini Seç",
+    "error_load_failed": "Veriler yüklenemedi",
+    "btn_weaver": "Dokumacı D.",
+    "btn_op_start": "Operasyon Başl.",
+    "btn_op_end": "Operasyon Son.",
+    "btn_fabric": "Kumaş İşlemleri",
+    "btn_warp": "Çözgü İşlemleri",
+    "all": "Tümü",
+    "language_turkish": "Türkçe",
+    "language_english": "İngilizce",
+    "label_looms": "TEZGAHLAR",
+    "label_personnel_no": "PERSONEL NO",
+    "label_personnel_name": "PERSONEL ADI",
+    "label_operation_code": "OPERASYON KODU",
+    "label_operation_select": "OPERASYON SEÇ",
+    "action_back": "GERİ",
+    "action_ok": "TAMAM"
+}
