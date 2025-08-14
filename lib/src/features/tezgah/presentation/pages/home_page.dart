@@ -10,6 +10,7 @@ import '../../domain/entities/tezgah.dart';
 import '../../domain/repositories/tezgah_repository.dart';
 import '../bloc/tezgah_bloc.dart';
 import '../widgets/fabric_dialog.dart';
+import '../widgets/warp_dialog.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -359,7 +360,7 @@ class _BottomActions extends StatelessWidget {
         child: Text('btn_fabric'.tr()),
       ),
       ElevatedButton(
-        onPressed: hasSelection ? () => context.pushNamed('warp') : null,
+        onPressed: hasSelection ? () => showWarpDialog(context) : null,
         child: Text('btn_warp'.tr()),
       ),
     ];

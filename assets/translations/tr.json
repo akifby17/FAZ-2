@@ -29,5 +29,10 @@
     "end_ops_success": "Operasyon(lar) sonlandırıldı",
     "end_ops_warn_title": "Operasyonu olmayan tezgahlar var",
     "end_ops_warn_body": "Aktif operasyon bulunmayan tezgahlar: {list}",
-    "action_cancel": "İptal"
+    "action_cancel": "İptal",
+    "warp_ops_title": "ÇÖZGÜ İŞLEMLERİ",
+    "warp_start_order": "Çözgü İş Emri Başlat",
+    "warp_stop_order": "Çözgü İş Emri Durdur",
+    "warp_finish_order": "Çözgü İş Emri Bitir",
+    "warp_start_title": "ÇÖZGÜ İŞ EMRİ BAŞLAT"
 }

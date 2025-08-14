@@ -29,5 +29,10 @@
     "end_ops_success": "Operation(s) ended",
     "end_ops_warn_title": "Some looms have no active operation",
     "end_ops_warn_body": "Looms without active operation: {list}",
-    "action_cancel": "Cancel"
+    "action_cancel": "Cancel",
+    "warp_ops_title": "WARP OPERATIONS",
+    "warp_start_order": "Start Warp Order",
+    "warp_stop_order": "Stop Warp Order",
+    "warp_finish_order": "Finish Warp Order",
+    "warp_start_title": "START WARP ORDER"
 }
