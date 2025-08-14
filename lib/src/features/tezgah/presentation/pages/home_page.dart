@@ -9,6 +9,7 @@ import '../../domain/usecases/get_tezgahlar.dart';
 import '../../domain/entities/tezgah.dart';
 import '../../domain/repositories/tezgah_repository.dart';
 import '../bloc/tezgah_bloc.dart';
+import '../widgets/fabric_dialog.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -290,12 +291,71 @@ class _BottomActions extends StatelessWidget {
         child: Text('btn_op_start'.tr()),
       ),
       ElevatedButton(
-        onPressed:
-            hasSelection ? () => context.push('/operations?end=true') : null,
+        onPressed: hasSelection
+            ? () async {
+                final items = context.read<TezgahBloc>().state.items;
+                final selected = items.where((e) => e.isSelected).toList();
+                final noOp = selected
+                    .where((e) => (e.operationName.isEmpty))
+                    .map((e) => e.loomNo)
+                    .toList();
+                if (noOp.isNotEmpty) {
+                  await showDialog<void>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      title: Text('end_ops_warn_title'.tr()),
+                      content: Text('end_ops_warn_body'
+                          .tr(namedArgs: {'list': noOp.join(', ')})),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            child: Text('action_ok'.tr()))
+                      ],
+                    ),
+                  );
+                  return;
+                }
+
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    title: Text('end_ops_title'.tr()),
+                    content: Text('end_ops_body'.tr()),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: Text('action_cancel'.tr())),
+                      ElevatedButton(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: Text('action_ok'.tr())),
+                    ],
+                  ),
+                );
+
+                if (confirmed != true) return;
+
+                // TODO: Endpoint hazır olduğunda burada API çağrısı yapılacak
+                // Başarılı durumda bilgilendirme
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('end_ops_success'.tr())),
+                  );
+                }
+              }
+            : null,
         child: Text('btn_op_end'.tr()),
       ),
       ElevatedButton(
-        onPressed: hasSelection ? () => context.pushNamed('fabric') : null,
+        onPressed: hasSelection
+            ? () {
+                final selected = _selectedLoomsText();
+                showFabricDialog(context, initialLoomsText: selected);
+              }
+            : null,
         child: Text('btn_fabric'.tr()),
       ),
       ElevatedButton(

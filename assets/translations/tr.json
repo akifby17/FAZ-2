@@ -17,5 +17,17 @@
     "label_operation_code": "OPERASYON KODU",
     "label_operation_select": "OPERASYON SEÇ",
     "action_back": "GERİ",
-    "action_ok": "TAMAM"
+    "action_ok": "TAMAM",
+    "fabric_ops_title": "KUMAŞ İŞLEMLERİ",
+    "fabric_start_order": "Kumaş İş Emri Başlat",
+    "fabric_stop_order": "Kumaş İş Emri Durdur",
+    "fabric_finish_order": "Kumaş İş Emri Bitir",
+    "fabric_start_title": "KUMAŞ İŞ EMRİ BAŞLAT",
+    "label_fabric_order_no": "İŞ EMRİ NO",
+    "end_ops_title": "Operasyon Sonlandırılacak",
+    "end_ops_body": "Seçili tezgahlardaki operasyon sonlandırılacak.",
+    "end_ops_success": "Operasyon(lar) sonlandırıldı",
+    "end_ops_warn_title": "Operasyonu olmayan tezgahlar var",
+    "end_ops_warn_body": "Aktif operasyon bulunmayan tezgahlar: {list}",
+    "action_cancel": "İptal"
 }

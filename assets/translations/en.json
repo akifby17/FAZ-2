@@ -17,5 +17,17 @@
     "label_operation_code": "OPERATION CODE",
     "label_operation_select": "SELECT OPERATION",
     "action_back": "BACK",
-    "action_ok": "OK"
+    "action_ok": "OK",
+    "fabric_ops_title": "FABRIC OPERATIONS",
+    "fabric_start_order": "Start Fabric Order",
+    "fabric_stop_order": "Stop Fabric Order",
+    "fabric_finish_order": "Finish Fabric Order",
+    "fabric_start_title": "START FABRIC ORDER",
+    "label_fabric_order_no": "ORDER NO",
+    "end_ops_title": "Operation will be ended",
+    "end_ops_body": "Operation(s) on selected looms will be ended.",
+    "end_ops_success": "Operation(s) ended",
+    "end_ops_warn_title": "Some looms have no active operation",
+    "end_ops_warn_body": "Looms without active operation: {list}",
+    "action_cancel": "Cancel"
 }
