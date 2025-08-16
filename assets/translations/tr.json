@@ -23,6 +23,8 @@
     "fabric_stop_order": "Kumaş İş Emri Durdur",
     "fabric_finish_order": "Kumaş İş Emri Bitir",
     "fabric_start_title": "KUMAŞ İŞ EMRİ BAŞLAT",
+    "fabric_stop_title": "KUMAŞ İŞ EMRİ DURDUR",
+    "fabric_finish_title": "KUMAŞ İŞ EMRİ BİTİR",
     "label_fabric_order_no": "İŞ EMRİ NO",
     "end_ops_title": "Operasyon Sonlandırılacak",
     "end_ops_body": "Seçili tezgahlardaki operasyon sonlandırılacak.",
@@ -34,5 +36,8 @@
     "warp_start_order": "Çözgü İş Emri Başlat",
     "warp_stop_order": "Çözgü İş Emri Durdur",
     "warp_finish_order": "Çözgü İş Emri Bitir",
-    "warp_start_title": "ÇÖZGÜ İŞ EMRİ BAŞLAT"
+    "warp_start_title": "ÇÖZGÜ İŞ EMRİ BAŞLAT",
+    "warp_stop_title": "ÇÖZGÜ İŞ EMRİ DURDUR",
+    "warp_finish_title": "ÇÖZGÜ İŞ EMRİ BİTİR",
+    "label_warp_order_no": "ÇÖZGÜ İŞ EMRİ NO"
 }

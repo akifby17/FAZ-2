@@ -6,7 +6,8 @@ import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
 import '../../../../core/auth/token_service.dart';
 
-Future<void> showWarpDialog(BuildContext context) async {
+Future<void> showWarpDialog(BuildContext context,
+    {String initialLoomsText = ''}) async {
   await showDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -35,19 +36,34 @@ Future<void> showWarpDialog(BuildContext context) async {
                   Navigator.of(context).pop();
                   showDialog(
                     context: context,
-                    builder: (ctx) => const _WarpStartDialog(),
+                    builder: (ctx) =>
+                        WarpStartDialog(initialLoomsText: initialLoomsText),
                   );
                 },
               ),
               const SizedBox(height: 16),
               _WideActionButton(
                 text: 'warp_stop_order'.tr(),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  showDialog(
+                    context: context,
+                    builder: (ctx) =>
+                        WarpStopDialog(initialLoomsText: initialLoomsText),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _WideActionButton(
                 text: 'warp_finish_order'.tr(),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  showDialog(
+                    context: context,
+                    builder: (ctx) =>
+                        WarpFinishDialog(initialLoomsText: initialLoomsText),
+                  );
+                },
               ),
             ],
           ),
@@ -80,14 +96,15 @@ class _WideActionButton extends StatelessWidget {
   }
 }
 
-class _WarpStartDialog extends StatefulWidget {
-  const _WarpStartDialog();
+class WarpStartDialog extends StatefulWidget {
+  final String initialLoomsText;
+  const WarpStartDialog({this.initialLoomsText = ''});
 
   @override
-  State<_WarpStartDialog> createState() => _WarpStartDialogState();
+  State<WarpStartDialog> createState() => _WarpStartDialogState();
 }
 
-class _WarpStartDialogState extends State<_WarpStartDialog> {
+class _WarpStartDialogState extends State<WarpStartDialog> {
   final TextEditingController _loomsController = TextEditingController();
   final TextEditingController _personnelIdController = TextEditingController();
   final TextEditingController _personnelNameController =
@@ -99,6 +116,9 @@ class _WarpStartDialogState extends State<_WarpStartDialog> {
   void initState() {
     super.initState();
     _personnelIdController.addListener(_onIdChanged);
+    if (widget.initialLoomsText.isNotEmpty) {
+      _loomsController.text = widget.initialLoomsText;
+    }
     _loadPersonnels();
   }
 
@@ -194,7 +214,309 @@ class _WarpStartDialogState extends State<_WarpStartDialog> {
               controller: _orderNoController,
               readOnly: true,
               decoration: InputDecoration(
-                labelText: 'label_fabric_order_no'.tr(),
+                labelText: 'label_warp_order_no'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('action_back'.tr())),
+                ElevatedButton(onPressed: () {}, child: Text('action_ok'.tr())),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _NumericKeyboard(
+              onKey: (d) {
+                _personnelIdController.text = _personnelIdController.text + d;
+              },
+              onBackspace: () {
+                final t = _personnelIdController.text;
+                if (t.isNotEmpty) {
+                  _personnelIdController.text = t.substring(0, t.length - 1);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class WarpStopDialog extends StatefulWidget {
+  final String initialLoomsText;
+  const WarpStopDialog({this.initialLoomsText = ''});
+
+  @override
+  State<WarpStopDialog> createState() => _WarpStopDialogState();
+}
+
+class _WarpStopDialogState extends State<WarpStopDialog> {
+  final TextEditingController _loomsController = TextEditingController();
+  final TextEditingController _personnelIdController = TextEditingController();
+  final TextEditingController _personnelNameController =
+      TextEditingController();
+  final TextEditingController _orderNoController = TextEditingController();
+  List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _personnelIdController.addListener(_onIdChanged);
+    if (widget.initialLoomsText.isNotEmpty) {
+      _loomsController.text = widget.initialLoomsText;
+    }
+    _loadPersonnels();
+  }
+
+  Future<void> _loadPersonnels() async {
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+      final loader = LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>());
+      final list = await loader(token: token);
+      if (!mounted) return;
+      setState(() {
+        _personIndex = list.map((e) => MapEntry(e.id, e.name)).toList();
+      });
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  void _onIdChanged() {
+    final int? id = int.tryParse(_personnelIdController.text.trim());
+    if (id == null) {
+      _personnelNameController.text = '';
+      return;
+    }
+    for (final entry in _personIndex) {
+      if (entry.key == id) {
+        _personnelNameController.text = entry.value;
+        return;
+      }
+    }
+    _personnelNameController.text = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'warp_stop_title'.tr(),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _loomsController,
+              readOnly: true,
+              minLines: 1,
+              maxLines: 8,
+              textAlignVertical: TextAlignVertical.top,
+              decoration: InputDecoration(
+                labelText: 'label_looms'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _personnelIdController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'label_personnel_no'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _personnelNameController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'label_personnel_name'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _orderNoController,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: 'label_warp_order_no'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('action_back'.tr())),
+                ElevatedButton(onPressed: () {}, child: Text('action_ok'.tr())),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _NumericKeyboard(
+              onKey: (d) {
+                _personnelIdController.text = _personnelIdController.text + d;
+              },
+              onBackspace: () {
+                final t = _personnelIdController.text;
+                if (t.isNotEmpty) {
+                  _personnelIdController.text = t.substring(0, t.length - 1);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class WarpFinishDialog extends StatefulWidget {
+  final String initialLoomsText;
+  const WarpFinishDialog({this.initialLoomsText = ''});
+
+  @override
+  State<WarpFinishDialog> createState() => _WarpFinishDialogState();
+}
+
+class _WarpFinishDialogState extends State<WarpFinishDialog> {
+  final TextEditingController _loomsController = TextEditingController();
+  final TextEditingController _personnelIdController = TextEditingController();
+  final TextEditingController _personnelNameController =
+      TextEditingController();
+  final TextEditingController _orderNoController = TextEditingController();
+  List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _personnelIdController.addListener(_onIdChanged);
+    if (widget.initialLoomsText.isNotEmpty) {
+      _loomsController.text = widget.initialLoomsText;
+    }
+    _loadPersonnels();
+  }
+
+  Future<void> _loadPersonnels() async {
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+      final loader = LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>());
+      final list = await loader(token: token);
+      if (!mounted) return;
+      setState(() {
+        _personIndex = list.map((e) => MapEntry(e.id, e.name)).toList();
+      });
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  void _onIdChanged() {
+    final int? id = int.tryParse(_personnelIdController.text.trim());
+    if (id == null) {
+      _personnelNameController.text = '';
+      return;
+    }
+    for (final entry in _personIndex) {
+      if (entry.key == id) {
+        _personnelNameController.text = entry.value;
+        return;
+      }
+    }
+    _personnelNameController.text = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'warp_finish_title'.tr(),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _loomsController,
+              readOnly: true,
+              minLines: 1,
+              maxLines: 8,
+              textAlignVertical: TextAlignVertical.top,
+              decoration: InputDecoration(
+                labelText: 'label_looms'.tr(),
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _personnelIdController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'label_personnel_no'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _personnelNameController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'label_personnel_name'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _orderNoController,
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText: 'label_warp_order_no'.tr(),
                 border: const OutlineInputBorder(),
               ),
             ),

@@ -23,6 +23,8 @@
     "fabric_stop_order": "Stop Fabric Order",
     "fabric_finish_order": "Finish Fabric Order",
     "fabric_start_title": "START FABRIC ORDER",
+    "fabric_stop_title": "STOP FABRIC ORDER",
+    "fabric_finish_title": "FINISH FABRIC ORDER",
     "label_fabric_order_no": "ORDER NO",
     "end_ops_title": "Operation will be ended",
     "end_ops_body": "Operation(s) on selected looms will be ended.",

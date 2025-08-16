@@ -360,7 +360,12 @@ class _BottomActions extends StatelessWidget {
         child: Text('btn_fabric'.tr()),
       ),
       ElevatedButton(
-        onPressed: hasSelection ? () => showWarpDialog(context) : null,
+        onPressed: hasSelection
+            ? () {
+                final selected = _selectedLoomsText();
+                showWarpDialog(context, initialLoomsText: selected);
+              }
+            : null,
         child: Text('btn_warp'.tr()),
       ),
     ];

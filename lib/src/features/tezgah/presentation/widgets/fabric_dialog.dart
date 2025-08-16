@@ -42,7 +42,11 @@ Future<void> showFabricDialog(BuildContext context,
                 text: 'fabric_stop_order'.tr(),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // TODO: navigate to stop flow
+                  showDialog(
+                    context: context,
+                    builder: (ctx) =>
+                        FabricStopDialog(initialLoomsText: initialLoomsText),
+                  );
                 },
               ),
               const SizedBox(height: 16),
@@ -50,7 +54,11 @@ Future<void> showFabricDialog(BuildContext context,
                 text: 'fabric_finish_order'.tr(),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // TODO: navigate to finish flow
+                  showDialog(
+                    context: context,
+                    builder: (ctx) =>
+                        FabricFinishDialog(initialLoomsText: initialLoomsText),
+                  );
                 },
               ),
             ],
