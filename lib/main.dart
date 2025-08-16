@@ -35,6 +35,7 @@ class FazApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final GoRouter router = buildRouter();
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: 'TEZGAHLAR',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF24456E)),

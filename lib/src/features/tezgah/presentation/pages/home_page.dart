@@ -101,16 +101,30 @@ class _SelectAllRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Checkbox(
-          value: context.select<TezgahBloc, bool>((b) {
-            final s = b.state;
-            return s.items.isNotEmpty && s.items.every((e) => e.isSelected);
-          }),
-          onChanged: (v) =>
-              context.read<TezgahBloc>().add(TezgahSelectAll(v ?? false)),
-        ),
-        Text('select_all'.tr()),
+        Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+          Checkbox(
+            value: context.select<TezgahBloc, bool>((b) {
+              final s = b.state;
+              return s.items.isNotEmpty && s.items.every((e) => e.isSelected);
+            }),
+            onChanged: (v) =>
+                context.read<TezgahBloc>().add(TezgahSelectAll(v ?? false)),
+          ),
+          Text('select_all'.tr(),
+              style: Theme.of(context).textTheme.bodySmall!),
+        ]),
+        Row(children: [
+          IconButton(
+            onPressed: () {
+              context.read<TezgahBloc>().add(TezgahFetched());
+            },
+            icon: const Icon(Icons.refresh),
+          ),
+          Text('btn_refresh'.tr(),
+              style: Theme.of(context).textTheme.bodySmall!),
+        ]),
       ],
     );
   }
@@ -187,13 +201,20 @@ class _TezgahGrid extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium!,
                           eventId: item.eventId,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         _TileText(
                           text: item.weaverName,
                           style: Theme.of(context).textTheme.bodySmall!,
                           eventId: item.eventId,
                           maxLines: 1,
                         ),
+                        _TileText(
+                          text: item.styleName,
+                          style: Theme.of(context).textTheme.bodySmall!,
+                          eventId: item.eventId,
+                          maxLines: 1,
+                        ),
+                        const SizedBox(height: 2),
                         if (item.operationName.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           _TileText(
@@ -268,6 +289,9 @@ class _BottomActions extends StatelessWidget {
     final bool isWide = width >= 600;
     final bool hasSelection = context.select<TezgahBloc, bool>(
         (b) => b.state.items.any((e) => e.isSelected));
+    
+    final bool hasExactlyOneSelection = context.select<TezgahBloc, bool>(
+        (b) => b.state.items.where((e) => e.isSelected).length == 1);
 
     String _selectedLoomsText() {
       final items = context.read<TezgahBloc>().state.items;
@@ -351,7 +375,7 @@ class _BottomActions extends StatelessWidget {
         child: Text('btn_op_end'.tr()),
       ),
       ElevatedButton(
-        onPressed: hasSelection
+        onPressed: hasExactlyOneSelection
             ? () {
                 final selected = _selectedLoomsText();
                 showFabricDialog(context, initialLoomsText: selected);
@@ -360,7 +384,7 @@ class _BottomActions extends StatelessWidget {
         child: Text('btn_fabric'.tr()),
       ),
       ElevatedButton(
-        onPressed: hasSelection
+        onPressed: hasExactlyOneSelection
             ? () {
                 final selected = _selectedLoomsText();
                 showWarpDialog(context, initialLoomsText: selected);
