@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 class ApiClient {
-  static const String baseUrl = 'https://texdata.harputtekstil.com.tr';
+  static const String baseUrl = 'http://192.168.2.22:5100';
 
   final Dio _dio;
 

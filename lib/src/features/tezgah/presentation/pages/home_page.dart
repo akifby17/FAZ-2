@@ -11,6 +11,7 @@ import '../../domain/repositories/tezgah_repository.dart';
 import '../bloc/tezgah_bloc.dart';
 import '../widgets/fabric_dialog.dart';
 import '../widgets/warp_dialog.dart';
+import '../widgets/piece_cut_dialog.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -289,7 +290,7 @@ class _BottomActions extends StatelessWidget {
     final bool isWide = width >= 600;
     final bool hasSelection = context.select<TezgahBloc, bool>(
         (b) => b.state.items.any((e) => e.isSelected));
-    
+
     final bool hasExactlyOneSelection = context.select<TezgahBloc, bool>(
         (b) => b.state.items.where((e) => e.isSelected).length == 1);
 
@@ -391,6 +392,15 @@ class _BottomActions extends StatelessWidget {
               }
             : null,
         child: Text('btn_warp'.tr()),
+      ),
+      ElevatedButton(
+        onPressed: hasExactlyOneSelection
+            ? () {
+                final selectedLoom = _selectedLoomsText();
+                showPieceCutDialog(context, selectedLoomNo: selectedLoom);
+              }
+            : null,
+        child: Text('btn_piece_cut'.tr()),
       ),
     ];
 
