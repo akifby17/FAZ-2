@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
+import '../../domain/usecases/change_weaver.dart';
 import 'package:faz2/src/core/auth/token_service.dart';
 
 class WeavingPage extends StatelessWidget {
@@ -34,6 +35,7 @@ class _WeaverFormState extends State<_WeaverForm> {
       TextEditingController();
   final FocusNode _idFocus = FocusNode();
   List<MapEntry<int, String>> _personnelIndex = <MapEntry<int, String>>[];
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -73,6 +75,154 @@ class _WeaverFormState extends State<_WeaverForm> {
       }
     }
     _personnelNameController.text = '';
+  }
+
+  Future<void> _changeWeavers() async {
+    final String personnelIdText = _personnelIdController.text.trim();
+    final String tezgahText = _tezgahController.text.trim();
+
+    if (personnelIdText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('validation_personnel_required'.tr())),
+      );
+      return;
+    }
+
+    if (tezgahText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('validation_loom_required'.tr())),
+      );
+      return;
+    }
+
+    final int? weaverId = int.tryParse(personnelIdText);
+    if (weaverId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('validation_personnel_invalid'.tr())),
+      );
+      return;
+    }
+
+    // Tezgah numaralarını ayır (virgülle ayrılmış)
+    final List<String> loomNumbers = tezgahText
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    if (loomNumbers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('validation_no_looms'.tr())),
+      );
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+
+    // Progress dialog göster
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _ProgressDialog(
+        totalLooms: loomNumbers.length,
+        currentLoom: 0,
+      ),
+    );
+
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+      final ChangeWeaver changeWeaver = GetIt.I<ChangeWeaver>();
+
+      List<String> successLooms = [];
+      List<String> failedLooms = [];
+
+      // Her tezgah için sırayla API çağrısı yap
+      for (int i = 0; i < loomNumbers.length; i++) {
+        final String loomNo = loomNumbers[i];
+
+        // Progress dialog'ı güncelle
+        Navigator.of(context).pop(); // Eski dialog'ı kapat
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => _ProgressDialog(
+            totalLooms: loomNumbers.length,
+            currentLoom: i + 1,
+            currentLoomNo: loomNo,
+          ),
+        );
+
+        try {
+          await changeWeaver(
+            token: token,
+            loomNo: loomNo,
+            weaverId: weaverId,
+          );
+          successLooms.add(loomNo);
+        } catch (e) {
+          failedLooms.add(loomNo);
+        }
+
+        // Kısa bir gecikme ekle (çok hızlı geçmesin)
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+
+      // Progress dialog'ı kapat
+      Navigator.of(context).pop();
+
+      // Sonuç dialog'ını göster
+      await _showResultDialog(successLooms, failedLooms);
+
+      // Başarılı olduysa formu temizle ve geri dön
+      if (failedLooms.isEmpty) {
+        // Ana sayfaya dön ve refresh yap (result olarak true döndür)
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      Navigator.of(context).pop(); // Progress dialog'ı kapat
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${'error_occurred'.tr()}: $e')),
+      );
+    } finally {
+      setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _showResultDialog(
+      List<String> successLooms, List<String> failedLooms) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('weaver_change_result'.tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (successLooms.isNotEmpty) ...[
+              Text(
+                  '✅ ${'weaver_change_successful'.tr()} (${successLooms.length}):',
+                  style: TextStyle(
+                      color: Colors.green, fontWeight: FontWeight.bold)),
+              Text(successLooms.join(', ')),
+              SizedBox(height: 8),
+            ],
+            if (failedLooms.isNotEmpty) ...[
+              Text('❌ ${'weaver_change_failed'.tr()} (${failedLooms.length}):',
+                  style: TextStyle(
+                      color: Colors.red, fontWeight: FontWeight.bold)),
+              Text(failedLooms.join(', ')),
+            ],
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('action_ok'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -135,15 +285,25 @@ class _WeaverFormState extends State<_WeaverForm> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed:
+                      _isProcessing ? null : () => Navigator.of(context).pop(),
                   child: Text('action_back'.tr())),
-              ElevatedButton(onPressed: () {}, child: Text('action_ok'.tr())),
+              ElevatedButton(
+                onPressed: _isProcessing ? null : _changeWeavers,
+                child: _isProcessing
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text('action_ok'.tr()),
+              ),
             ],
           ),
           const Spacer(),
           _NumericKeyboard(
-            onKey: _appendDigit,
-            onBackspace: _backspace,
+            onKey: _isProcessing ? (_) {} : _appendDigit,
+            onBackspace: _isProcessing ? () {} : _backspace,
           ),
         ],
       ),
@@ -159,6 +319,60 @@ class _WeaverFormState extends State<_WeaverForm> {
     if (text.isNotEmpty) {
       _personnelIdController.text = text.substring(0, text.length - 1);
     }
+  }
+}
+
+class _ProgressDialog extends StatelessWidget {
+  final int totalLooms;
+  final int currentLoom;
+  final String? currentLoomNo;
+
+  const _ProgressDialog({
+    required this.totalLooms,
+    required this.currentLoom,
+    this.currentLoomNo,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double progress = currentLoom / totalLooms;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'weaver_change_title'.tr(),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            LinearProgressIndicator(
+              value: progress,
+              backgroundColor: Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '$currentLoom / $totalLooms',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            if (currentLoomNo != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                '${'label_tezgah'.tr()}: $currentLoomNo',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 

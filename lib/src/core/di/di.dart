@@ -11,6 +11,10 @@ import '../../features/personnel/data/repositories/personnel_repository_impl.dar
 import '../auth/token_service.dart';
 import '../../features/operation/data/datasources/operation_remote_data_source.dart';
 import '../../features/operation/data/repositories/operation_repository_impl.dart';
+import '../../features/tezgah/data/datasources/weaver_remote_data_source.dart';
+import '../../features/tezgah/data/repositories/weaver_repository_impl.dart';
+import '../../features/tezgah/domain/repositories/weaver_repository.dart';
+import '../../features/tezgah/domain/usecases/change_weaver.dart';
 
 Future<void> configureDependencies(GetIt sl) async {
   // Local storage
@@ -40,6 +44,9 @@ Future<void> configureDependencies(GetIt sl) async {
       () => PersonnelRemoteDataSourceImpl(apiClient: sl()));
   sl.registerLazySingleton<OperationRemoteDataSource>(
       () => OperationRemoteDataSourceImpl(apiClient: sl()));
+  sl.registerLazySingleton<WeaverRemoteDataSource>(
+    () => WeaverRemoteDataSource(),
+  );
 
   // Repository
   sl.registerLazySingleton<TezgahRepository>(() => TezgahRepositoryImpl(
@@ -49,4 +56,10 @@ Future<void> configureDependencies(GetIt sl) async {
       () => PersonnelRepositoryImpl(remote: sl()));
   sl.registerLazySingleton<OperationRepositoryImpl>(
       () => OperationRepositoryImpl(remote: sl()));
+  sl.registerLazySingleton<WeaverRepository>(
+    () => WeaverRepositoryImpl(sl<WeaverRemoteDataSource>()),
+  );
+  sl.registerLazySingleton<ChangeWeaver>(
+    () => ChangeWeaver(sl<WeaverRepository>()),
+  );
 }

@@ -302,8 +302,13 @@ class _BottomActions extends StatelessWidget {
     final List<Widget> buttons = [
       ElevatedButton(
         onPressed: hasSelection
-            ? () {
-                context.pushNamed('weaving', extra: _selectedLoomsText());
+            ? () async {
+                final result = await context.pushNamed('weaving',
+                    extra: _selectedLoomsText());
+                // Eğer işlem başarılıysa tezgahları refresh et
+                if (result == true && context.mounted) {
+                  context.read<TezgahBloc>().add(TezgahFetched());
+                }
               }
             : null,
         child: Text('btn_weaver'.tr()),
