@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:get_it/get_it.dart';
+import 'package:dio/dio.dart';
 
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
@@ -111,15 +112,81 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
       TextEditingController();
   final TextEditingController _orderNoController = TextEditingController();
   List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+  bool _isLoadingWorkOrder = false;
 
   @override
   void initState() {
     super.initState();
+    print("WarpStartDialog initState başladı");
     _personnelIdController.addListener(_onIdChanged);
     if (widget.initialLoomsText.isNotEmpty) {
+      print("initialLoomsText: ${widget.initialLoomsText}");
       _loomsController.text = widget.initialLoomsText;
+      // Tek tezgah seçiliyse warp order'ı getir
+      final loomNumbers = widget.initialLoomsText
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      print("Loom numbers: $loomNumbers");
+      if (loomNumbers.length == 1) {
+        print("Tek tezgah var, API çağrısı yapılacak: ${loomNumbers.first}");
+        _loadWarpOrder(loomNumbers.first);
+      } else {
+        print(
+            "Tek tezgah yok, API çağrısı yapılmayacak. Sayı: ${loomNumbers.length}");
+      }
+    } else {
+      print("initialLoomsText boş");
     }
     _loadPersonnels();
+  }
+
+  Future<void> _loadWarpOrder(String loomNo) async {
+    print("_loadWarpOrder called with loomNo: $loomNo");
+    setState(() => _isLoadingWorkOrder = true);
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+      print("Token alındı: ${token.substring(0, 20)}...");
+
+      // Basit API çağrısı - Warp next endpoint
+      final dio = Dio();
+      dio.options.baseUrl = 'http://192.168.2.9:5038';
+
+      print("API çağrısı yapılıyor: /api/warps/next/$loomNo");
+      final response = await dio.get(
+        '/api/warps/next/$loomNo',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      print("Response alındı!");
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      if (response.data != null && response.data['workOrderNo'] != null) {
+        print("WorkOrderNo: ${response.data['workOrderNo']}");
+        if (mounted) {
+          setState(() {
+            _orderNoController.text = response.data['workOrderNo'].toString();
+          });
+        }
+      } else {
+        print("Response data boş veya workOrderNo yok");
+      }
+    } catch (e) {
+      print("API Hatası: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Çözgü iş emri alınamadı: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingWorkOrder = false);
+      }
+    }
   }
 
   Future<void> _loadPersonnels() async {
@@ -216,6 +283,16 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
               decoration: InputDecoration(
                 labelText: 'label_warp_order_no'.tr(),
                 border: const OutlineInputBorder(),
+                suffixIcon: _isLoadingWorkOrder
+                    ? Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
@@ -262,6 +339,7 @@ class _WarpStopDialogState extends State<WarpStopDialog> {
       TextEditingController();
   final TextEditingController _orderNoController = TextEditingController();
   List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+  bool _isLoadingWorkOrder = false;
 
   @override
   void initState() {
@@ -269,8 +347,68 @@ class _WarpStopDialogState extends State<WarpStopDialog> {
     _personnelIdController.addListener(_onIdChanged);
     if (widget.initialLoomsText.isNotEmpty) {
       _loomsController.text = widget.initialLoomsText;
+      // Tek tezgah seçiliyse warp order'ı getir
+      final loomNumbers = widget.initialLoomsText
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (loomNumbers.length == 1) {
+        _loadWarpOrder(loomNumbers.first);
+      }
     }
     _loadPersonnels();
+  }
+
+  Future<void> _loadWarpOrder(String loomNo) async {
+    print("_loadWarpOrder (STOP) called with loomNo: $loomNo");
+    setState(() => _isLoadingWorkOrder = true);
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+      print("Token alındı: ${token.substring(0, 20)}...");
+
+      // Basit API çağrısı - Warp current endpoint (stop için)
+      final dio = Dio();
+      dio.options.baseUrl = 'http://192.168.2.9:5038';
+
+      print("API çağrısı yapılıyor: /api/warps/current/$loomNo");
+      final response = await dio.get(
+        '/api/warps/current/$loomNo',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      print("Response alındı!");
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      if (response.data != null &&
+          response.data is List &&
+          response.data.isNotEmpty &&
+          response.data[0]['workOrderNo'] != null) {
+        print("WorkOrderNo: ${response.data[0]['workOrderNo']}");
+        if (mounted) {
+          setState(() {
+            _orderNoController.text =
+                response.data[0]['workOrderNo'].toString();
+          });
+        }
+      } else {
+        print("Response data boş veya beklenen formatta değil");
+      }
+    } catch (e) {
+      print("API Hatası: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Çözgü iş emri alınamadı: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingWorkOrder = false);
+      }
+    }
   }
 
   Future<void> _loadPersonnels() async {
@@ -367,6 +505,16 @@ class _WarpStopDialogState extends State<WarpStopDialog> {
               decoration: InputDecoration(
                 labelText: 'label_warp_order_no'.tr(),
                 border: const OutlineInputBorder(),
+                suffixIcon: _isLoadingWorkOrder
+                    ? Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
@@ -413,6 +561,7 @@ class _WarpFinishDialogState extends State<WarpFinishDialog> {
       TextEditingController();
   final TextEditingController _orderNoController = TextEditingController();
   List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+  bool _isLoadingWorkOrder = false;
 
   @override
   void initState() {
@@ -420,8 +569,68 @@ class _WarpFinishDialogState extends State<WarpFinishDialog> {
     _personnelIdController.addListener(_onIdChanged);
     if (widget.initialLoomsText.isNotEmpty) {
       _loomsController.text = widget.initialLoomsText;
+      // Tek tezgah seçiliyse warp order'ı getir
+      final loomNumbers = widget.initialLoomsText
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (loomNumbers.length == 1) {
+        _loadWarpOrder(loomNumbers.first);
+      }
     }
     _loadPersonnels();
+  }
+
+  Future<void> _loadWarpOrder(String loomNo) async {
+    print("_loadWarpOrder called with loomNo: $loomNo");
+    setState(() => _isLoadingWorkOrder = true);
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+      print("Token alındı: ${token.substring(0, 20)}...");
+
+      // Basit API çağrısı - Warp current endpoint (finish için)
+      final dio = Dio();
+      dio.options.baseUrl = 'http://192.168.2.9:5038';
+
+      print("API çağrısı yapılıyor: /api/warps/current/$loomNo");
+      final response = await dio.get(
+        '/api/warps/current/$loomNo',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      print("Response alındı!");
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      if (response.data != null &&
+          response.data is List &&
+          response.data.isNotEmpty &&
+          response.data[0]['workOrderNo'] != null) {
+        print("WorkOrderNo: ${response.data[0]['workOrderNo']}");
+        if (mounted) {
+          setState(() {
+            _orderNoController.text =
+                response.data[0]['workOrderNo'].toString();
+          });
+        }
+      } else {
+        print("Response data boş veya beklenen formatta değil");
+      }
+    } catch (e) {
+      print("API Hatası: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Çözgü iş emri alınamadı: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingWorkOrder = false);
+      }
+    }
   }
 
   Future<void> _loadPersonnels() async {
@@ -518,6 +727,16 @@ class _WarpFinishDialogState extends State<WarpFinishDialog> {
               decoration: InputDecoration(
                 labelText: 'label_warp_order_no'.tr(),
                 border: const OutlineInputBorder(),
+                suffixIcon: _isLoadingWorkOrder
+                    ? Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
