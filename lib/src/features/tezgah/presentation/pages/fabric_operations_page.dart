@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:get_it/get_it.dart';
+import 'package:dio/dio.dart';
 
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
@@ -52,7 +53,7 @@ Future<void> _showFabricDialog(BuildContext context) async {
                   Navigator.of(context).pop();
                   showDialog(
                     context: context,
-                    builder: (ctx) => const FabricStartDialog(),
+                    builder: (ctx) => FabricStartDialog(initialLoomsText: ''),
                   );
                 },
               ),
@@ -124,16 +125,61 @@ class _FabricStartDialogState extends State<FabricStartDialog> {
       TextEditingController();
   final TextEditingController _orderNoController = TextEditingController();
   List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+  bool _isLoadingWorkOrder = false;
 
   @override
   void initState() {
     super.initState();
-    // Ana ekrandan seleksiyon alınamıyor burada; istenirse showDialog'a extra parametre ile geçirilebilir
     _personnelIdController.addListener(_onIdChanged);
     if (widget.initialLoomsText.isNotEmpty) {
       _loomsController.text = widget.initialLoomsText;
+      // Tek tezgah seçiliyse work order'ı getir
+      final loomNumbers = widget.initialLoomsText
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (loomNumbers.length == 1) {
+        _loadWorkOrder(loomNumbers.first);
+      }
     }
     _loadPersonnels();
+  }
+
+  Future<void> _loadWorkOrder(String loomNo) async {
+    setState(() => _isLoadingWorkOrder = true);
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+
+      // Basit API çağrısı
+      final dio = Dio();
+      dio.options.baseUrl = 'http://192.168.2.9:5038';
+
+      final response = await dio.get(
+        '/api/style-work-orders/next/$loomNo',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.data != null && response.data['workOrderNo'] != null) {
+        if (mounted) {
+          setState(() {
+            _orderNoController.text = response.data['workOrderNo'].toString();
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('İş emri alınamadı: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingWorkOrder = false);
+      }
+    }
   }
 
   void _onIdChanged() {
@@ -230,6 +276,16 @@ class _FabricStartDialogState extends State<FabricStartDialog> {
               decoration: InputDecoration(
                 labelText: 'label_fabric_order_no'.tr(),
                 border: const OutlineInputBorder(),
+                suffixIcon: _isLoadingWorkOrder
+                    ? Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
@@ -276,6 +332,7 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
       TextEditingController();
   final TextEditingController _orderNoController = TextEditingController();
   List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+  bool _isLoadingWorkOrder = false;
 
   @override
   void initState() {
@@ -283,8 +340,53 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
     _personnelIdController.addListener(_onIdChanged);
     if (widget.initialLoomsText.isNotEmpty) {
       _loomsController.text = widget.initialLoomsText;
+      // Tek tezgah seçiliyse mevcut work order'ı getir
+      final loomNumbers = widget.initialLoomsText
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (loomNumbers.length == 1) {
+        _loadCurrentWorkOrder(loomNumbers.first);
+      }
     }
     _loadPersonnels();
+  }
+
+  Future<void> _loadCurrentWorkOrder(String loomNo) async {
+    setState(() => _isLoadingWorkOrder = true);
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+
+      // Basit API çağrısı - current endpoint
+      final dio = Dio();
+      dio.options.baseUrl = 'http://192.168.2.9:5038';
+
+      final response = await dio.get(
+        '/api/style-work-orders/current/$loomNo',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.data != null && response.data['workOrderNo'] != null) {
+        if (mounted) {
+          setState(() {
+            _orderNoController.text = response.data['workOrderNo'].toString();
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Mevcut iş emri alınamadı: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingWorkOrder = false);
+      }
+    }
   }
 
   void _onIdChanged() {
@@ -381,6 +483,16 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
               decoration: InputDecoration(
                 labelText: 'label_fabric_order_no'.tr(),
                 border: const OutlineInputBorder(),
+                suffixIcon: _isLoadingWorkOrder
+                    ? Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
@@ -427,6 +539,7 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
       TextEditingController();
   final TextEditingController _orderNoController = TextEditingController();
   List<MapEntry<int, String>> _personIndex = <MapEntry<int, String>>[];
+  bool _isLoadingWorkOrder = false;
 
   @override
   void initState() {
@@ -434,8 +547,53 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
     _personnelIdController.addListener(_onIdChanged);
     if (widget.initialLoomsText.isNotEmpty) {
       _loomsController.text = widget.initialLoomsText;
+      // Tek tezgah seçiliyse mevcut work order'ı getir
+      final loomNumbers = widget.initialLoomsText
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (loomNumbers.length == 1) {
+        _loadCurrentWorkOrder(loomNumbers.first);
+      }
     }
     _loadPersonnels();
+  }
+
+  Future<void> _loadCurrentWorkOrder(String loomNo) async {
+    setState(() => _isLoadingWorkOrder = true);
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+
+      // Basit API çağrısı - current endpoint
+      final dio = Dio();
+      dio.options.baseUrl = 'http://192.168.2.9:5038';
+
+      final response = await dio.get(
+        '/api/style-work-orders/current/$loomNo',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.data != null && response.data['workOrderNo'] != null) {
+        if (mounted) {
+          setState(() {
+            _orderNoController.text = response.data['workOrderNo'].toString();
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Mevcut iş emri alınamadı: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingWorkOrder = false);
+      }
+    }
   }
 
   void _onIdChanged() {
@@ -532,6 +690,16 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
               decoration: InputDecoration(
                 labelText: 'label_fabric_order_no'.tr(),
                 border: const OutlineInputBorder(),
+                suffixIcon: _isLoadingWorkOrder
+                    ? Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
