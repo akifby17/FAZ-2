@@ -10,15 +10,15 @@ import '../../../../core/network/api_client.dart';
 
 enum ActiveField { personnel, orderNo }
 
-class WarpStartDialog extends StatefulWidget {
+class FabricFinishDialog extends StatefulWidget {
   final String initialLoomsText;
-  const WarpStartDialog({super.key, this.initialLoomsText = ''});
+  const FabricFinishDialog({super.key, this.initialLoomsText = ''});
 
   @override
-  State<WarpStartDialog> createState() => _WarpStartDialogState();
+  State<FabricFinishDialog> createState() => _FabricFinishDialogState();
 }
 
-class _WarpStartDialogState extends State<WarpStartDialog> {
+class _FabricFinishDialogState extends State<FabricFinishDialog> {
   final TextEditingController _loomsController = TextEditingController();
   final TextEditingController _personnelIdController = TextEditingController();
   final TextEditingController _personnelNameController =
@@ -32,72 +32,49 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
   @override
   void initState() {
     super.initState();
-    print("WarpStartDialog initState başladı");
     _personnelIdController.addListener(_onIdChanged);
     _personnelIdController.addListener(_onFormChanged);
     _orderNoController.addListener(_onFormChanged);
     _loomsController.addListener(_onFormChanged);
     if (widget.initialLoomsText.isNotEmpty) {
-      print("initialLoomsText: ${widget.initialLoomsText}");
       _loomsController.text = widget.initialLoomsText;
-      // Tek tezgah seçiliyse warp order'ı getir
+      // Tek tezgah seçiliyse current work order'ı getir
       final loomNumbers = widget.initialLoomsText
           .split(',')
           .map((e) => e.trim())
           .where((e) => e.isNotEmpty)
           .toList();
-      print("Loom numbers: $loomNumbers");
       if (loomNumbers.length == 1) {
-        print("Tek tezgah var, API çağrısı yapılacak: ${loomNumbers.first}");
-        _loadWarpOrder(loomNumbers.first);
-      } else {
-        print(
-            "Tek tezgah yok, API çağrısı yapılmayacak. Sayı: ${loomNumbers.length}");
+        _loadCurrentWorkOrder(loomNumbers.first);
       }
-    } else {
-      print("initialLoomsText boş");
     }
     _loadPersonnels();
   }
 
-  Future<void> _loadWarpOrder(String loomNo) async {
-    print("_loadWarpOrder called with loomNo: $loomNo");
+  Future<void> _loadCurrentWorkOrder(String loomNo) async {
     setState(() => _isLoadingWorkOrder = true);
     try {
       final String token = await GetIt.I<TokenService>().getToken();
-      print("Token alındı: ${token.substring(0, 20)}...");
-
-      // API çağrısı - Warp next endpoint
       final apiClient = GetIt.I<ApiClient>();
 
-      print("API çağrısı yapılıyor: /api/warps/next/$loomNo");
       final response = await apiClient.get(
-        '/api/warps/next/$loomNo',
+        '/api/style-work-orders/current/$loomNo',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
         ),
       );
 
-      print("Response alındı!");
-      print("Response status: ${response.statusCode}");
-      print("Response data: ${response.data}");
-
       if (response.data != null && response.data['workOrderNo'] != null) {
-        print("WorkOrderNo: ${response.data['workOrderNo']}");
         if (mounted) {
           setState(() {
             _orderNoController.text = response.data['workOrderNo'].toString();
-            // Form validasyonunu tetikle - TAMAM butonunu güncelle
           });
         }
-      } else {
-        print("Response data boş veya workOrderNo yok");
       }
     } catch (e) {
-      print("API Hatası: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Çözgü iş emri alınamadı: $e')),
+          SnackBar(content: Text('Mevcut iş emri alınamadı: $e')),
         );
       }
     } finally {
@@ -121,74 +98,10 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
     }
   }
 
-  bool _isValidForm() {
-    return _personnelIdController.text.trim().isNotEmpty &&
-        _loomsController.text.trim().isNotEmpty;
-  }
-
-  Future<void> _submitWarpStart() async {
-    if (!_isValidForm() || _isSubmitting) return;
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      final String token = await GetIt.I<TokenService>().getToken();
-      final apiClient = GetIt.I<ApiClient>();
-
-      final String orderNoText = _orderNoController.text.trim();
-      final int warpWorkOrderNo =
-          orderNoText.isEmpty ? 0 : int.parse(orderNoText);
-
-      final requestData = {
-        'loomNo': _loomsController.text.trim(),
-        'personnelID': int.parse(_personnelIdController.text.trim()),
-        'warpWorkOrderNo': warpWorkOrderNo,
-        'status': 0, // Başlatma
-      };
-
-      print("Çözgü başlatma isteği: $requestData");
-
-      final response = await apiClient.post(
-        '/api/DataMan/warpWorkOrderStartStopPause',
-        data: requestData,
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
-      );
-
-      print("Response: ${response.data}");
-
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Çözgü iş emri başarıyla başlatıldı'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      print("Hata: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Çözgü iş emri başlatılamadı: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
-  }
-
   void _onFormChanged() {
-    // Form değiştiğinde UI'ı güncelle - TAMAM butonunu aktifleştir
     if (mounted) {
       setState(() {
-        // Sadece setState çağır, form validasyonu _isValidForm() ile yapılıyor
+        // Form validasyonunu güncelle
       });
     }
   }
@@ -206,6 +119,74 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
       }
     }
     _personnelNameController.text = '';
+  }
+
+  bool _isValidForm() {
+    return _personnelIdController.text.trim().isNotEmpty &&
+           _loomsController.text.trim().isNotEmpty;
+  }
+
+  // Ortak submit metodu - status parametresi ile hangi işlem olduğunu belirler
+  Future<void> _submitFabricOperation({
+    required int status, // 0: başlat, 1: bitir, 2: durdur
+    required String successMessage,
+    required String errorMessage,
+    Color successColor = Colors.green,
+  }) async {
+    if (!_isValidForm() || _isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final String token = await GetIt.I<TokenService>().getToken();
+      final apiClient = GetIt.I<ApiClient>();
+
+      final String orderNoText = _orderNoController.text.trim();
+      final int styleWorkOrderNo = orderNoText.isEmpty ? 0 : int.parse(orderNoText);
+
+      final requestData = {
+        'loomNo': _loomsController.text.trim(),
+        'personnelID': int.parse(_personnelIdController.text.trim()),
+        'styleWorkOrderNo': styleWorkOrderNo,
+        'status': status,
+      };
+
+      print("Kumaş işlemi isteği (status: $status): $requestData");
+
+      final response = await apiClient.post(
+        '/api/DataMan/styleWorkOrderStartStopPause',
+        data: requestData,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      print("Response: ${response.data}");
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(successMessage),
+            backgroundColor: successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      print("Hata: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$errorMessage: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -233,7 +214,7 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'warp_start_title'.tr(),
+              'fabric_finish_title'.tr(),
               style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -241,9 +222,6 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
             TextField(
               controller: _loomsController,
               readOnly: true,
-              minLines: 1,
-              maxLines: 8,
-              textAlignVertical: TextAlignVertical.top,
               decoration: InputDecoration(
                 labelText: 'label_looms'.tr(),
                 border: const OutlineInputBorder(),
@@ -265,9 +243,9 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
                       labelText: 'label_personnel_no'.tr(),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
-                          color: _activeField == ActiveField.personnel
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey,
+                          color: _activeField == ActiveField.personnel 
+                            ? Theme.of(context).colorScheme.primary 
+                            : Colors.grey,
                           width: _activeField == ActiveField.personnel ? 2 : 1,
                         ),
                       ),
@@ -303,12 +281,12 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
                 });
               },
               decoration: InputDecoration(
-                labelText: 'label_warp_order_no'.tr(),
+                labelText: 'label_fabric_order_no'.tr(),
                 border: OutlineInputBorder(
                   borderSide: BorderSide(
-                    color: _activeField == ActiveField.orderNo
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.grey,
+                    color: _activeField == ActiveField.orderNo 
+                      ? Theme.of(context).colorScheme.primary 
+                      : Colors.grey,
                     width: _activeField == ActiveField.orderNo ? 2 : 1,
                   ),
                 ),
@@ -339,7 +317,12 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
                     child: Text('action_back'.tr())),
                 ElevatedButton(
                   onPressed: (_isValidForm() && !_isSubmitting)
-                      ? _submitWarpStart
+                      ? () => _submitFabricOperation(
+                            status: 1, // Bitirme
+                            successMessage: 'Kumaş iş emri başarıyla bitirildi',
+                            errorMessage: 'Kumaş iş emri bitirilemedi',
+                            successColor: Colors.green,
+                          )
                       : null,
                   child: _isSubmitting
                       ? SizedBox(
@@ -354,7 +337,6 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
             const SizedBox(height: 12),
             _NumericKeyboard(
               onKey: (d) {
-                // Hangi alan aktifse ona yaz
                 if (_activeField == ActiveField.personnel) {
                   _personnelIdController.text = _personnelIdController.text + d;
                 } else if (_activeField == ActiveField.orderNo) {
@@ -390,18 +372,7 @@ class _NumericKeyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> keys = [
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '*',
-      '0',
-      '<'
+      '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '<'
     ];
     return GridView.builder(
       shrinkWrap: true,

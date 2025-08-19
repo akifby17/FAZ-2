@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../pages/fabric_operations_page.dart';
+
+import 'fabric_start_dialog.dart';
+import 'fabric_stop_dialog.dart';
+import 'fabric_finish_dialog.dart';
 
 Future<void> showFabricDialog(BuildContext context,
     {String initialLoomsText = ''}) async {

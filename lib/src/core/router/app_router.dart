@@ -4,7 +4,6 @@ import '../../features/tezgah/presentation/pages/home_page.dart';
 import '../../features/tezgah/presentation/pages/operations_page.dart';
 import '../../features/tezgah/presentation/pages/weaving_page.dart';
 import '../../features/tezgah/presentation/pages/warp_operations_page.dart';
-import '../../features/tezgah/presentation/pages/fabric_operations_page.dart';
 
 GoRouter buildRouter() {
   return GoRouter(
@@ -38,7 +37,7 @@ GoRouter buildRouter() {
       GoRoute(
         path: '/fabric',
         name: 'fabric',
-        builder: (context, state) => const FabricOperationsPage(),
+        builder: (context, state) => const WarpOperationsPage(), // Placeholder - Fabric artık dialog olarak açılıyor
       ),
     ],
   );
