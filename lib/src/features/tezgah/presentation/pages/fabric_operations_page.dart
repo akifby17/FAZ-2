@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
 import '../../../../core/auth/token_service.dart';
+import '../../../../core/network/api_client.dart';
 
 class FabricOperationsPage extends StatelessWidget {
   const FabricOperationsPage({super.key});
@@ -151,11 +152,10 @@ class _FabricStartDialogState extends State<FabricStartDialog> {
     try {
       final String token = await GetIt.I<TokenService>().getToken();
 
-      // Basit API çağrısı
-      final dio = Dio();
-      dio.options.baseUrl = 'http://192.168.2.9:5038';
+      // API çağrısı
+      final apiClient = GetIt.I<ApiClient>();
 
-      final response = await dio.get(
+      final response = await apiClient.get(
         '/api/style-work-orders/next/$loomNo',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
@@ -358,11 +358,10 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
     try {
       final String token = await GetIt.I<TokenService>().getToken();
 
-      // Basit API çağrısı - current endpoint
-      final dio = Dio();
-      dio.options.baseUrl = 'http://192.168.2.9:5038';
+      // API çağrısı - current endpoint
+      final apiClient = GetIt.I<ApiClient>();
 
-      final response = await dio.get(
+      final response = await apiClient.get(
         '/api/style-work-orders/current/$loomNo',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
@@ -565,11 +564,10 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
     try {
       final String token = await GetIt.I<TokenService>().getToken();
 
-      // Basit API çağrısı - current endpoint
-      final dio = Dio();
-      dio.options.baseUrl = 'http://192.168.2.9:5038';
+      // API çağrısı - current endpoint
+      final apiClient = GetIt.I<ApiClient>();
 
-      final response = await dio.get(
+      final response = await apiClient.get(
         '/api/style-work-orders/current/$loomNo',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},

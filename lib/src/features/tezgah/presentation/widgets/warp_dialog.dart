@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
 import '../../../../core/auth/token_service.dart';
+import '../../../../core/network/api_client.dart';
 
 Future<void> showWarpDialog(BuildContext context,
     {String initialLoomsText = ''}) async {
@@ -149,12 +150,11 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
       final String token = await GetIt.I<TokenService>().getToken();
       print("Token alındı: ${token.substring(0, 20)}...");
 
-      // Basit API çağrısı - Warp next endpoint
-      final dio = Dio();
-      dio.options.baseUrl = 'http://192.168.2.9:5038';
+      // API çağrısı - Warp next endpoint
+      final apiClient = GetIt.I<ApiClient>();
 
       print("API çağrısı yapılıyor: /api/warps/next/$loomNo");
-      final response = await dio.get(
+      final response = await apiClient.get(
         '/api/warps/next/$loomNo',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
@@ -367,12 +367,11 @@ class _WarpStopDialogState extends State<WarpStopDialog> {
       final String token = await GetIt.I<TokenService>().getToken();
       print("Token alındı: ${token.substring(0, 20)}...");
 
-      // Basit API çağrısı - Warp current endpoint (stop için)
-      final dio = Dio();
-      dio.options.baseUrl = 'http://192.168.2.9:5038';
+      // API çağrısı - Warp current endpoint (stop için)
+      final apiClient = GetIt.I<ApiClient>();
 
       print("API çağrısı yapılıyor: /api/warps/current/$loomNo");
-      final response = await dio.get(
+      final response = await apiClient.get(
         '/api/warps/current/$loomNo',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
@@ -589,12 +588,11 @@ class _WarpFinishDialogState extends State<WarpFinishDialog> {
       final String token = await GetIt.I<TokenService>().getToken();
       print("Token alındı: ${token.substring(0, 20)}...");
 
-      // Basit API çağrısı - Warp current endpoint (finish için)
-      final dio = Dio();
-      dio.options.baseUrl = 'http://192.168.2.9:5038';
+      // API çağrısı - Warp current endpoint (finish için)
+      final apiClient = GetIt.I<ApiClient>();
 
       print("API çağrısı yapılıyor: /api/warps/current/$loomNo");
-      final response = await dio.get(
+      final response = await apiClient.get(
         '/api/warps/current/$loomNo',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},

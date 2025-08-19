@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.2.9:5038';
+  static const String baseUrl = 'http://192.168.2.9:5100';
 
   final Dio _dio;
 
