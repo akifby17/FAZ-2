@@ -13,7 +13,7 @@ class WeaverRemoteDataSource {
   }) async {
     try {
       await _apiClient.post(
-        '/api/looms/changeWeaver',
+        '/api/DataMan/changeWeaver',
         data: {
           'loomNo': loomNo,
           'weaverId': weaverId,

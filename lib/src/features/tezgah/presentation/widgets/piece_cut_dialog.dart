@@ -152,25 +152,28 @@ class _PieceCutDialogState extends State<PieceCutDialog> {
     setState(() => _isSubmitting = true);
 
     try {
-      // final String token = await GetIt.I<TokenService>().getToken();
-      // final apiClient = GetIt.I<ApiClient>();
+      final String token = await GetIt.I<TokenService>().getToken();
+      final apiClient = GetIt.I<ApiClient>();
 
       final requestData = {
         'loomNo': _tezgahController.text.trim(),
         'personnelID': int.parse(_personnelIdController.text.trim()),
         'pieceNo': int.parse(_topNoController.text.trim()),
-        'productedLength': double.parse(_metreController.text.trim()),
+        'pieceLength': double.parse(_metreController.text.trim()),
+        'manuelLength': 0, // Her zaman 0
       };
 
       print("Top kesim isteği: $requestData");
 
-      // TODO: Top kesim endpoint'i henüz verilmedi, geldiğinde buraya eklenecek
-      // final response = await apiClient.post('/api/pieces/cut',
-      //   data: requestData,
-      //   options: Options(headers: {'Authorization': 'Bearer $token'}));
+      final response = await apiClient.post(
+        '/api/DataMan/pieceCutting',
+        data: requestData,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
 
-      // Şimdilik simülasyon
-      await Future.delayed(const Duration(milliseconds: 500));
+      print("Top kesim response: ${response.data}");
 
       if (mounted) {
         Navigator.of(context).pop();
