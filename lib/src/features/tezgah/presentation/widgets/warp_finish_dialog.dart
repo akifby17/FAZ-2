@@ -155,7 +155,7 @@ class _WarpFinishDialogState extends State<WarpFinishDialog> {
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Çözgü iş emri başarıyla bitirildi'),
             backgroundColor: Colors.green,
           ),
@@ -313,7 +313,7 @@ class _WarpFinishDialogState extends State<WarpFinishDialog> {
                   ),
                 ),
                 suffixIcon: _isLoadingWorkOrder
-                    ? Padding(
+                    ? const Padding(
                         padding: EdgeInsets.all(12),
                         child: SizedBox(
                           width: 20,
@@ -336,7 +336,7 @@ class _WarpFinishDialogState extends State<WarpFinishDialog> {
                       ? _submitWarpFinish
                       : null,
                   child: _isSubmitting
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),

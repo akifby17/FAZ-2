@@ -298,7 +298,7 @@ class _FabricStartDialogState extends State<FabricStartDialog> {
                   ),
                 ),
                 suffixIcon: _isLoadingWorkOrder
-                    ? Padding(
+                    ? const Padding(
                         padding: EdgeInsets.all(12),
                         child: SizedBox(
                           width: 20,
@@ -327,7 +327,7 @@ class _FabricStartDialogState extends State<FabricStartDialog> {
                           )
                       : null,
                   child: _isSubmitting
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),

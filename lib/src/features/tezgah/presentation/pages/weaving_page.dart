@@ -202,14 +202,14 @@ class _WeaverFormState extends State<_WeaverForm> {
             if (successLooms.isNotEmpty) ...[
               Text(
                   '✅ ${'weaver_change_successful'.tr()} (${successLooms.length}):',
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.green, fontWeight: FontWeight.bold)),
               Text(successLooms.join(', ')),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
             ],
             if (failedLooms.isNotEmpty) ...[
               Text('❌ ${'weaver_change_failed'.tr()} (${failedLooms.length}):',
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.red, fontWeight: FontWeight.bold)),
               Text(failedLooms.join(', ')),
             ],
@@ -291,7 +291,7 @@ class _WeaverFormState extends State<_WeaverForm> {
               ElevatedButton(
                 onPressed: _isProcessing ? null : _changeWeavers,
                 child: _isProcessing
-                    ? SizedBox(
+                    ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),

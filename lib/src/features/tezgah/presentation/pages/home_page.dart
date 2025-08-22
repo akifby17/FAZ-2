@@ -294,7 +294,7 @@ class _BottomActions extends StatelessWidget {
     final bool hasExactlyOneSelection = context.select<TezgahBloc, bool>(
         (b) => b.state.items.where((e) => e.isSelected).length == 1);
 
-    String _selectedLoomsText() {
+    String selectedLoomsText() {
       final items = context.read<TezgahBloc>().state.items;
       return items.where((e) => e.isSelected).map((e) => e.loomNo).join(',');
     }
@@ -304,7 +304,7 @@ class _BottomActions extends StatelessWidget {
         onPressed: hasSelection
             ? () async {
                 final result = await context.pushNamed('weaving',
-                    extra: _selectedLoomsText());
+                    extra: selectedLoomsText());
                 // Eğer işlem başarılıysa tezgahları refresh et
                 if (result == true && context.mounted) {
                   context.read<TezgahBloc>().add(TezgahFetched());
@@ -316,7 +316,7 @@ class _BottomActions extends StatelessWidget {
       ElevatedButton(
         onPressed: hasSelection
             ? () {
-                context.pushNamed('operations', extra: _selectedLoomsText());
+                context.pushNamed('operations', extra: selectedLoomsText());
               }
             : null,
         child: Text('btn_op_start'.tr()),
@@ -383,7 +383,7 @@ class _BottomActions extends StatelessWidget {
       ElevatedButton(
         onPressed: hasExactlyOneSelection
             ? () {
-                final selected = _selectedLoomsText();
+                final selected = selectedLoomsText();
                 showFabricDialog(context, initialLoomsText: selected);
               }
             : null,
@@ -392,7 +392,7 @@ class _BottomActions extends StatelessWidget {
       ElevatedButton(
         onPressed: hasExactlyOneSelection
             ? () {
-                final selected = _selectedLoomsText();
+                final selected = selectedLoomsText();
                 showWarpDialog(context, initialLoomsText: selected);
               }
             : null,
@@ -401,7 +401,7 @@ class _BottomActions extends StatelessWidget {
       ElevatedButton(
         onPressed: hasExactlyOneSelection
             ? () {
-                final selectedLoom = _selectedLoomsText();
+                final selectedLoom = selectedLoomsText();
                 showPieceCutDialog(context, selectedLoomNo: selectedLoom);
               }
             : null,
