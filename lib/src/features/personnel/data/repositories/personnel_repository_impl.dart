@@ -12,13 +12,7 @@ class PersonnelRepositoryImpl implements PersonnelRepository {
   @override
   Future<List<Personnel>> fetchAll() async {
     if (_cache != null) return _cache!;
-    // NOTE: Token yönetimi daha sonra güvenli saklanacak; şimdilik DI dışından alınacak
-    // Bu metodu kullanırken token parametresini DI veya başka servisle taşırız.
-    throw UnimplementedError('Token must be provided via a use case');
-  }
-
-  Future<List<Personnel>> fetchAllWithToken(String token) async {
-    final List<PersonnelDto> dtos = await remote.fetchAll(token: token);
+    final List<PersonnelDto> dtos = await remote.fetchAll();
     _cache = dtos.map((e) => e.toDomain()).toList();
     return _cache!;
   }

@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
-import '../../../../core/auth/token_service.dart';
 import '../../../../core/network/api_client.dart';
 
 enum ActiveField { personnel, topNo, metre }
@@ -61,7 +60,6 @@ class _PieceCutDialogState extends State<PieceCutDialog> {
 
     setState(() => _isLoadingPieces = true);
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final apiClient = GetIt.I<ApiClient>();
 
       print("Pieces yükleniyor: ${widget.selectedLoomNo}");
@@ -70,7 +68,7 @@ class _PieceCutDialogState extends State<PieceCutDialog> {
         '/api/pieces/loom-workorder-pieces',
         data: {'loomNo': widget.selectedLoomNo},
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 
@@ -104,9 +102,8 @@ class _PieceCutDialogState extends State<PieceCutDialog> {
 
   Future<void> _loadPersonnels() async {
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final loader = LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>());
-      final list = await loader(token: token);
+      final list = await loader();
       if (!mounted) return;
       setState(() {
         _personIndex = list.map((e) => MapEntry(e.id, e.name)).toList();
@@ -152,7 +149,6 @@ class _PieceCutDialogState extends State<PieceCutDialog> {
     setState(() => _isSubmitting = true);
 
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final apiClient = GetIt.I<ApiClient>();
 
       final requestData = {
@@ -169,7 +165,7 @@ class _PieceCutDialogState extends State<PieceCutDialog> {
         '/api/DataMan/pieceCutting',
         data: requestData,
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 

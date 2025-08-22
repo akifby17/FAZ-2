@@ -5,7 +5,6 @@ import 'package:get_it/get_it.dart';
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
 import '../../domain/usecases/change_weaver.dart';
-import 'package:faz2/src/core/auth/token_service.dart';
 
 class WeavingPage extends StatelessWidget {
   const WeavingPage({super.key, this.initialLoomsText = ''});
@@ -50,9 +49,8 @@ class _WeaverFormState extends State<_WeaverForm> {
 
   Future<void> _loadPersonnels() async {
     try {
-      final token = await GetIt.I<TokenService>().getToken();
       final loader = LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>());
-      final list = await loader(token: token);
+      final list = await loader();
       setState(() {
         _personnelIndex = list.map((e) => MapEntry(e.id, e.name)).toList();
       });
@@ -130,7 +128,6 @@ class _WeaverFormState extends State<_WeaverForm> {
     );
 
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final ChangeWeaver changeWeaver = GetIt.I<ChangeWeaver>();
 
       List<String> successLooms = [];
@@ -154,7 +151,6 @@ class _WeaverFormState extends State<_WeaverForm> {
 
         try {
           await changeWeaver(
-            token: token,
             loomNo: loomNo,
             weaverId: weaverId,
           );

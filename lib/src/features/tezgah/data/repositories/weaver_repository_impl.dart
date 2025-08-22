@@ -8,12 +8,10 @@ class WeaverRepositoryImpl implements WeaverRepository {
 
   @override
   Future<void> changeWeaver({
-    required String token,
     required String loomNo,
     required int weaverId,
   }) async {
     await _remoteDataSource.changeWeaver(
-      token: token,
       loomNo: loomNo,
       weaverId: weaverId,
     );

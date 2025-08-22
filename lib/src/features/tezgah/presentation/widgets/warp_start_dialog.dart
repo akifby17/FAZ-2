@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
-import '../../../../core/auth/token_service.dart';
 import '../../../../core/network/api_client.dart';
 
 enum ActiveField { personnel, orderNo }
@@ -64,9 +63,6 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
     print("_loadWarpOrder called with loomNo: $loomNo");
     setState(() => _isLoadingWorkOrder = true);
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
-      print("Token alındı: ${token.substring(0, 20)}...");
-
       // API çağrısı - Warp next endpoint
       final apiClient = GetIt.I<ApiClient>();
 
@@ -74,7 +70,7 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
       final response = await apiClient.get(
         '/api/warps/next/$loomNo',
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 
@@ -109,9 +105,8 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
 
   Future<void> _loadPersonnels() async {
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final loader = LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>());
-      final list = await loader(token: token);
+      final list = await loader();
       if (!mounted) return;
       setState(() {
         _personIndex = list.map((e) => MapEntry(e.id, e.name)).toList();
@@ -132,7 +127,6 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
     setState(() => _isSubmitting = true);
 
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final apiClient = GetIt.I<ApiClient>();
 
       final String orderNoText = _orderNoController.text.trim();
@@ -152,7 +146,7 @@ class _WarpStartDialogState extends State<WarpStartDialog> {
         '/api/DataMan/warpWorkOrderStartStopPause',
         data: requestData,
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 

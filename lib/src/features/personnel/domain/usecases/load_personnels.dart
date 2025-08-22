@@ -5,7 +5,7 @@ class LoadPersonnels {
   final PersonnelRepositoryImpl repository;
   LoadPersonnels(this.repository);
 
-  Future<List<Personnel>> call({required String token}) {
-    return repository.fetchAllWithToken(token);
+  Future<List<Personnel>> call() {
+    return repository.fetchAll();
   }
 }

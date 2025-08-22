@@ -8,9 +8,9 @@ class OperationRepositoryImpl {
 
   OperationRepositoryImpl({required this.remote});
 
-  Future<List<Operation>> fetchAll(String token) async {
+  Future<List<Operation>> fetchAll() async {
     if (_cache != null) return _cache!;
-    final List<OperationDto> dtos = await remote.fetchAll(token: token);
+    final List<OperationDto> dtos = await remote.fetchAll();
     _cache = dtos.map((e) => e.toDomain()).toList();
     return _cache!;
   }

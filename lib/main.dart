@@ -11,6 +11,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
   await configureDependencies(GetIt.I);
+
+  // 🚀 Uygulama başlatılıyor...
+  print('🚀 FAZ-2 Tezgah Kontrol Uygulaması başlatılıyor (Auth disabled)...');
+
   // Persisted locale from Hive
   final Box<dynamic> settings = GetIt.I<Box<dynamic>>();
   final String? savedLocaleCode = settings.get('locale_code') as String?;

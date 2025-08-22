@@ -4,7 +4,7 @@ import '../../../../core/network/api_client.dart';
 import '../models/personnel_dto.dart';
 
 abstract class PersonnelRemoteDataSource {
-  Future<List<PersonnelDto>> fetchAll({required String token});
+  Future<List<PersonnelDto>> fetchAll();
 }
 
 class PersonnelRemoteDataSourceImpl implements PersonnelRemoteDataSource {
@@ -12,12 +12,11 @@ class PersonnelRemoteDataSourceImpl implements PersonnelRemoteDataSource {
   PersonnelRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<List<PersonnelDto>> fetchAll({required String token}) async {
+  Future<List<PersonnelDto>> fetchAll() async {
     final Response<dynamic> res = await apiClient.get(
       '/api/personnels',
       options: Options(headers: {
         'accept': 'application/json',
-        'Authorization': 'Bearer $token',
       }),
     );
     final dynamic body = res.data;

@@ -6,7 +6,6 @@ import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
 import '../../../operation/data/repositories/operation_repository_impl.dart';
 import '../../../operation/domain/entities/operation.dart';
-import '../../../../core/auth/token_service.dart';
 
 enum ActiveInput { personnel, operation }
 
@@ -55,13 +54,12 @@ class _OperationStartFormState extends State<_OperationStartForm> {
 
   Future<void> _loadInitialData() async {
     try {
-      final token = await GetIt.I<TokenService>().getToken();
       // Personeller
-      final persons = await LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>())(
-          token: token);
+      final persons =
+          await LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>())();
       _personIndex = persons.map((e) => MapEntry(e.id, e.name)).toList();
       // Operasyonlar
-      _operations = await GetIt.I<OperationRepositoryImpl>().fetchAll(token);
+      _operations = await GetIt.I<OperationRepositoryImpl>().fetchAll();
       if (mounted) setState(() {});
     } catch (_) {}
   }

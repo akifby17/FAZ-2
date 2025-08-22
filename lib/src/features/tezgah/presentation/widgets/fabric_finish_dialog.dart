@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
-import '../../../../core/auth/token_service.dart';
 import '../../../../core/network/api_client.dart';
 
 enum ActiveField { personnel, orderNo }
@@ -54,13 +53,12 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
   Future<void> _loadCurrentWorkOrder(String loomNo) async {
     setState(() => _isLoadingWorkOrder = true);
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final apiClient = GetIt.I<ApiClient>();
 
       final response = await apiClient.get(
         '/api/style-work-orders/current/$loomNo',
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 
@@ -86,9 +84,8 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
 
   Future<void> _loadPersonnels() async {
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final loader = LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>());
-      final list = await loader(token: token);
+      final list = await loader();
       if (!mounted) return;
       setState(() {
         _personIndex = list.map((e) => MapEntry(e.id, e.name)).toList();
@@ -123,7 +120,7 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
 
   bool _isValidForm() {
     return _personnelIdController.text.trim().isNotEmpty &&
-           _loomsController.text.trim().isNotEmpty;
+        _loomsController.text.trim().isNotEmpty;
   }
 
   // Ortak submit metodu - status parametresi ile hangi işlem olduğunu belirler
@@ -138,11 +135,11 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
     setState(() => _isSubmitting = true);
 
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final apiClient = GetIt.I<ApiClient>();
 
       final String orderNoText = _orderNoController.text.trim();
-      final int styleWorkOrderNo = orderNoText.isEmpty ? 0 : int.parse(orderNoText);
+      final int styleWorkOrderNo =
+          orderNoText.isEmpty ? 0 : int.parse(orderNoText);
 
       final requestData = {
         'loomNo': _loomsController.text.trim(),
@@ -157,7 +154,7 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
         '/api/DataMan/styleWorkOrderStartStopPause',
         data: requestData,
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 
@@ -243,9 +240,9 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
                       labelText: 'label_personnel_no'.tr(),
                       border: OutlineInputBorder(
                         borderSide: BorderSide(
-                          color: _activeField == ActiveField.personnel 
-                            ? Theme.of(context).colorScheme.primary 
-                            : Colors.grey,
+                          color: _activeField == ActiveField.personnel
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey,
                           width: _activeField == ActiveField.personnel ? 2 : 1,
                         ),
                       ),
@@ -284,9 +281,9 @@ class _FabricFinishDialogState extends State<FabricFinishDialog> {
                 labelText: 'label_fabric_order_no'.tr(),
                 border: OutlineInputBorder(
                   borderSide: BorderSide(
-                    color: _activeField == ActiveField.orderNo 
-                      ? Theme.of(context).colorScheme.primary 
-                      : Colors.grey,
+                    color: _activeField == ActiveField.orderNo
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey,
                     width: _activeField == ActiveField.orderNo ? 2 : 1,
                   ),
                 ),
@@ -372,7 +369,18 @@ class _NumericKeyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> keys = [
-      '1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '<'
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '*',
+      '0',
+      '<'
     ];
     return GridView.builder(
       shrinkWrap: true,

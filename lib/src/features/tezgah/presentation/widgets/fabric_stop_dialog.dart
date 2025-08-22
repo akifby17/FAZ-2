@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 
 import '../../../personnel/domain/usecases/load_personnels.dart';
 import '../../../personnel/data/repositories/personnel_repository_impl.dart';
-import '../../../../core/auth/token_service.dart';
 import '../../../../core/network/api_client.dart';
 
 enum ActiveField { personnel, orderNo }
@@ -54,13 +53,12 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
   Future<void> _loadCurrentWorkOrder(String loomNo) async {
     setState(() => _isLoadingWorkOrder = true);
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final apiClient = GetIt.I<ApiClient>();
 
       final response = await apiClient.get(
         '/api/style-work-orders/current/$loomNo',
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 
@@ -86,9 +84,8 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
 
   Future<void> _loadPersonnels() async {
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final loader = LoadPersonnels(GetIt.I<PersonnelRepositoryImpl>());
-      final list = await loader(token: token);
+      final list = await loader();
       if (!mounted) return;
       setState(() {
         _personIndex = list.map((e) => MapEntry(e.id, e.name)).toList();
@@ -138,7 +135,6 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
     setState(() => _isSubmitting = true);
 
     try {
-      final String token = await GetIt.I<TokenService>().getToken();
       final apiClient = GetIt.I<ApiClient>();
 
       final String orderNoText = _orderNoController.text.trim();
@@ -158,7 +154,7 @@ class _FabricStopDialogState extends State<FabricStopDialog> {
         '/api/DataMan/styleWorkOrderStartStopPause',
         data: requestData,
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
 

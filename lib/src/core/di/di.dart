@@ -34,8 +34,7 @@ Future<void> configureDependencies(GetIt sl) async {
 
   // API Client
   sl.registerLazySingleton<ApiClient>(() => ApiClient(sl()));
-  sl.registerLazySingleton<TokenService>(
-      () => TokenService(apiClient: sl(), box: sl()));
+  sl.registerLazySingleton<TokenService>(() => TokenService(box: sl()));
 
   // Data sources
   sl.registerLazySingleton<TezgahRemoteDataSource>(

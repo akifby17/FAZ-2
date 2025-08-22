@@ -7,7 +7,6 @@ class WeaverRemoteDataSource {
   final ApiClient _apiClient = GetIt.I<ApiClient>();
 
   Future<void> changeWeaver({
-    required String token,
     required String loomNo,
     required int weaverId,
   }) async {
@@ -19,7 +18,7 @@ class WeaverRemoteDataSource {
           'weaverId': weaverId,
         },
         options: Options(
-          headers: {'Authorization': 'Bearer $token'},
+          headers: {'Content-Type': 'application/json'},
         ),
       );
     } catch (e) {
