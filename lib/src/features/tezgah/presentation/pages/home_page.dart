@@ -35,23 +35,12 @@ class _HomeView extends StatelessWidget {
       appBar: AppBar(
         title: Text('title_looms'.tr()),
         actions: [
-          PopupMenuButton<Locale>(
-            icon: const Icon(Icons.language),
-            onSelected: (locale) {
-              context.setLocale(locale);
-              // Save to Hive
-              GetIt.I<Box<dynamic>>().put('locale_code', locale.languageCode);
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              context.pushNamed('settings');
             },
-            itemBuilder: (context) => [
-              PopupMenuItem<Locale>(
-                value: const Locale('tr'),
-                child: Text('language_turkish'.tr()),
-              ),
-              PopupMenuItem<Locale>(
-                value: const Locale('en'),
-                child: Text('language_english'.tr()),
-              ),
-            ],
+            tooltip: 'Ayarlar',
           ),
         ],
       ),

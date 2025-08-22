@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../network/api_client.dart';
+import '../services/api_url_service.dart';
 import '../../features/tezgah/data/datasources/tezgah_remote_data_source.dart';
 import '../../features/tezgah/data/repositories/tezgah_repository_impl.dart';
 import '../../features/tezgah/domain/repositories/tezgah_repository.dart';
@@ -16,15 +17,25 @@ import '../../features/tezgah/data/repositories/weaver_repository_impl.dart';
 import '../../features/tezgah/domain/repositories/weaver_repository.dart';
 import '../../features/tezgah/domain/usecases/change_weaver.dart';
 
+// Settings imports
+import '../../features/settings/data/datasources/settings_local_data_source.dart';
+import '../../features/settings/data/repositories/settings_repository_impl.dart';
+import '../../features/settings/domain/repositories/settings_repository.dart';
+import '../../features/settings/domain/usecases/get_settings.dart';
+import '../../features/settings/domain/usecases/verify_admin_password.dart';
+import '../../features/settings/domain/usecases/update_api_url.dart';
+
 Future<void> configureDependencies(GetIt sl) async {
   // Local storage
   await Hive.initFlutter();
   final Box<dynamic> settingsBox = await Hive.openBox('settings');
   sl.registerLazySingleton<Box<dynamic>>(() => settingsBox);
 
-  // Core - Dio
+  // Core services
+  sl.registerLazySingleton<ApiUrlService>(() => ApiUrlService(box: sl()));
+
+  // Core - Dio (dynamic base URL will be handled by ApiClient)
   sl.registerLazySingleton<Dio>(() => Dio(BaseOptions(
-        baseUrl: ApiClient.baseUrl,
         connectTimeout: const Duration(seconds: 20),
         receiveTimeout: const Duration(seconds: 20),
         headers: {
@@ -33,7 +44,7 @@ Future<void> configureDependencies(GetIt sl) async {
       )));
 
   // API Client
-  sl.registerLazySingleton<ApiClient>(() => ApiClient(sl()));
+  sl.registerLazySingleton<ApiClient>(() => ApiClient(sl(), sl()));
   sl.registerLazySingleton<TokenService>(() => TokenService(box: sl()));
 
   // Data sources
@@ -60,5 +71,22 @@ Future<void> configureDependencies(GetIt sl) async {
   );
   sl.registerLazySingleton<ChangeWeaver>(
     () => ChangeWeaver(sl<WeaverRepository>()),
+  );
+
+  // Settings feature
+  sl.registerLazySingleton<SettingsLocalDataSource>(
+    () => SettingsLocalDataSourceImpl(box: sl()),
+  );
+  sl.registerLazySingleton<SettingsRepository>(
+    () => SettingsRepositoryImpl(localDataSource: sl()),
+  );
+  sl.registerLazySingleton<GetSettings>(
+    () => GetSettings(sl()),
+  );
+  sl.registerLazySingleton<VerifyAdminPassword>(
+    () => VerifyAdminPassword(sl()),
+  );
+  sl.registerLazySingleton<UpdateApiUrl>(
+    () => UpdateApiUrl(sl()),
   );
 }

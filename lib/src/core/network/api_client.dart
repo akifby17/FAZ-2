@@ -1,11 +1,13 @@
 import 'package:dio/dio.dart';
+import '../services/api_url_service.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.2.9:5100';
+  static const String baseUrl = 'http://192.168.2.9:5100'; // Fallback
 
   final Dio _dio;
+  final ApiUrlService _apiUrlService;
 
-  ApiClient(this._dio) {
+  ApiClient(this._dio, this._apiUrlService) {
     // Hata ayıklama için interceptor ekle
     _dio.interceptors.add(LogInterceptor(
       requestBody: true,
@@ -14,7 +16,21 @@ class ApiClient {
       requestHeader: true,
       responseHeader: false,
     ));
+
+    // Dynamic base URL interceptor
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        final currentBaseUrl = _apiUrlService.getCurrentUrl();
+        if (options.path.startsWith('/')) {
+          options.path = currentBaseUrl + options.path;
+        }
+        handler.next(options);
+      },
+    ));
   }
+
+  /// Get current API base URL
+  String getCurrentBaseUrl() => _apiUrlService.getCurrentUrl();
 
   Future<Response<T>> get<T>(
     String path, {
@@ -55,7 +71,8 @@ class ApiClient {
   /// API endpoint'lerinin durumunu kontrol etmek için yardımcı method
   Future<void> checkEndpointHealth(String endpoint) async {
     try {
-      print('🔍 Endpoint kontrolü yapılıyor: $baseUrl$endpoint');
+      final currentUrl = getCurrentBaseUrl();
+      print('🔍 Endpoint kontrolü yapılıyor: $currentUrl$endpoint');
       final response = await _dio.get(endpoint);
       print('✅ Endpoint çalışıyor: $endpoint (Status: ${response.statusCode})');
     } on DioException catch (e) {
@@ -73,7 +90,9 @@ class ApiClient {
 
   /// Tüm kullanılan endpoint'leri test et
   Future<void> testAllEndpoints() async {
+    final currentUrl = getCurrentBaseUrl();
     print('\n🧪 === API Endpoint Health Check Başlatılıyor ===');
+    print('🌐 Base URL: $currentUrl');
 
     final endpoints = [
       '/api/looms/monitoring', // ✅ Çalışıyor
