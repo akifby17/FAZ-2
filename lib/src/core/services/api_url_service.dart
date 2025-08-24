@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 class ApiUrlService {
   final Box<dynamic> _box;
   static const String _apiUrlKey = 'api_base_url';
-  static const String _defaultUrl = 'http://192.168.2.9:5100';
+  static const String _defaultUrl = 'http://95.70.139.125:5100';
 
   ApiUrlService({required Box<dynamic> box}) : _box = box;
 

@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import '../services/api_url_service.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://192.168.2.9:5100'; // Fallback
+  static const String baseUrl = 'http://95.70.139.125:5100'; // Fallback
 
   final Dio _dio;
   final ApiUrlService _apiUrlService;
@@ -21,9 +21,9 @@ class ApiClient {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
         final currentBaseUrl = _apiUrlService.getCurrentUrl();
-        if (options.path.startsWith('/')) {
-          options.path = currentBaseUrl + options.path;
-        }
+        // Set the dynamic base URL
+        options.baseUrl = currentBaseUrl;
+        print('🌐 API Request: ${options.baseUrl}${options.path}');
         handler.next(options);
       },
     ));

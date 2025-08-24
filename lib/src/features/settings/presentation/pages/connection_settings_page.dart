@@ -162,72 +162,72 @@ class _ConnectionSettingsPageState extends State<ConnectionSettingsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'settings_api_base_url'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'settings_api_base_url'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _apiUrlController,
+                      decoration: const InputDecoration(
+                        labelText: 'API URL',
+                        hintText: 'http://95.70.139.125:5100',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.link),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (_apiUrlController.text.trim().isNotEmpty) {
+                            context.read<SettingsBloc>().add(
+                                  ApiUrlUpdated(_apiUrlController.text.trim()),
+                                );
+                          }
+                        },
+                        icon: const Icon(Icons.save),
+                        label: Text('settings_update_api_url'.tr()),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _apiUrlController,
-                    decoration: const InputDecoration(
-                      labelText: 'API URL',
-                      hintText: 'http://192.168.2.9:5100',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.link),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        if (_apiUrlController.text.trim().isNotEmpty) {
-                          context.read<SettingsBloc>().add(
-                                ApiUrlUpdated(_apiUrlController.text.trim()),
-                              );
-                        }
-                      },
-                      icon: const Icon(Icons.save),
-                      label: Text('settings_update_api_url'.tr()),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-          Card(
-            color: Colors.orange[50],
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Icon(Icons.warning, color: Colors.orange[700]),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'settings_api_warning'.tr(),
-                      style: TextStyle(
-                        color: Colors.orange[700],
-                        fontWeight: FontWeight.w500,
+            const Spacer(),
+            Card(
+              color: Colors.orange[50],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.orange[700]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'settings_api_warning'.tr(),
+                        style: TextStyle(
+                          color: Colors.orange[700],
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
           ],
         ),
       ),

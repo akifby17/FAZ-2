@@ -47,7 +47,7 @@ class _AdminPasswordDialogState extends State<AdminPasswordDialog> {
         children: [
           Text(
             'settings_security_desc'.tr(),
-            style: TextStyle(fontSize: 14),
+            style: const TextStyle(fontSize: 14),
           ),
           const SizedBox(height: 16),
           TextFormField(

@@ -37,7 +37,7 @@ class SettingsDto {
 
   static SettingsDto defaultSettings() {
     return const SettingsDto(
-      apiBaseUrl: 'http://192.168.2.9:5100',
+      apiBaseUrl: 'http://95.70.139.125:5100',
       languageCode: 'tr',
       adminPassword: '27526',
     );

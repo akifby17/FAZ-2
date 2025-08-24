@@ -36,8 +36,9 @@ Future<void> configureDependencies(GetIt sl) async {
 
   // Core - Dio (dynamic base URL will be handled by ApiClient)
   sl.registerLazySingleton<Dio>(() => Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 20),
-        receiveTimeout: const Duration(seconds: 20),
+        connectTimeout: const Duration(minutes: 2),
+        receiveTimeout: const Duration(minutes: 2),
+        sendTimeout: const Duration(minutes: 2),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -78,10 +79,13 @@ Future<void> configureDependencies(GetIt sl) async {
     () => SettingsLocalDataSourceImpl(box: sl()),
   );
   sl.registerLazySingleton<SettingsRepository>(
-    () => SettingsRepositoryImpl(localDataSource: sl()),
+    () => SettingsRepositoryImpl(
+      localDataSource: sl(),
+      apiUrlService: sl(),
+    ),
   );
   sl.registerLazySingleton<GetSettings>(
-    () => GetSettings(sl()),
+    () => GetSettings(sl(), sl()),
   );
   sl.registerLazySingleton<VerifyAdminPassword>(
     () => VerifyAdminPassword(sl()),
